@@ -17,6 +17,7 @@ class CDMentropy:
         isDBer : bool
         verbose : bool
         nMC : int
+            number of Monte Carlo steps to use in calculation
         """
         octave.addpath(octave.genpath(source))
         octave.addpath(octave.genpath(source+'/lib/PYMentropy'))
@@ -25,12 +26,17 @@ class CDMentropy:
 
     def _entropyCDM(self,matrix_spikes):
         """
+        Interfaces with CDMentropy MATLAB code
+
         Parameters
         ----------
         matrix_spikes : 2d array
             M*N array of spiketrain
 
         Returns
+        -------
+        cdme : float
+            CDM entropy calculated for matrix_spikes from MATLAB interface
         -------
 
         """
@@ -57,6 +63,8 @@ class CDMentropy:
 
         Returns
         -------
+        cdme : float
+            CDM entropy calculated for trials, bins, neurons as specified using _entropyCDM
         """
         if time_end is None:
             time_end=time_start+1
@@ -66,6 +74,8 @@ class CDMentropy:
 
     def mutualInformation(self, trial, neuron_start, neuron_end, stimulus_start, stimulus_end, time, tau):
         """
+        Returns MI for single timesteps
+
         Parameters
         ----------
         trial : int
@@ -85,6 +95,8 @@ class CDMentropy:
 
         Returns
         -------
+        MI : float
+            mutual information between neuron for time t and stimulus at time t+tau
         """
         HX_t = self._entropyCDM(self.spikes._spikes[trial][neuron_start:neuron_end, time:time+1])
         HR_t_tau = self._entropyCDM(self.spikes._spikes[trial][stimulus_start:stimulus_end, time+tau:time+tau+1])
@@ -120,6 +132,8 @@ class CDMentropy:
 
         Returns
         -------
+        MI : float
+            mutual information between neurons and stimuli at windowed time ranges
         """
         if stimulus_end is None:
             stimulus_end = np.shape(self.spikes._spikes[trial])[0]
