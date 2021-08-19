@@ -8,7 +8,6 @@ class CDMentropy:
     def __init__(self, source, spikes, isDBer=True, verbose=False, nMC=999):
         """
         Initialises oct2py interface for CDMentropy MATLAB code
-
         Parameters
         ----------
         source : string
@@ -17,7 +16,6 @@ class CDMentropy:
         isDBer : bool
         verbose : bool
         nMC : int
-            number of Monte Carlo steps to use in calculation
         """
         octave.addpath(octave.genpath(source))
         octave.addpath(octave.genpath(source+'/lib/PYMentropy'))
@@ -26,19 +24,12 @@ class CDMentropy:
 
     def _entropyCDM(self,matrix_spikes):
         """
-        Interfaces with CDMentropy MATLAB code
-
         Parameters
         ----------
         matrix_spikes : 2d array
             M*N array of spiketrain
-
         Returns
         -------
-        cdme : float
-            CDM entropy calculated for matrix_spikes from MATLAB interface
-        -------
-
         """
         nn,ocnts=octave.words2nnOcnts(matrix_spikes,nout=2)
         m = np.shape(matrix_spikes)[0]
@@ -47,7 +38,6 @@ class CDMentropy:
     def entropyCDM(self, trial, time_start, neuron_start, time_end=None,neuron_end=None):
         """
         Returns entropy calculated upon spiketrain, specifying time bins to consider and neurons to include in calculation
-
         Parameters
         ----------
         trial : int
@@ -60,11 +50,8 @@ class CDMentropy:
             start of range of neurons included in calculation (included in range)
         neuron_end : int
             end of range of neurons included in calculation (excluded in range)
-
         Returns
         -------
-        cdme : float
-            CDM entropy calculated for trials, bins, neurons as specified using _entropyCDM
         """
         if time_end is None:
             time_end=time_start+1
@@ -72,52 +59,18 @@ class CDMentropy:
             neuron_end=neuron_start+1
         return self._entropyCDM(self.spikes._spikes[trial][neuron_start:neuron_end,time_start:time_end].T)
 
-    def mutualInformation(self, trial, neuron_start, neuron_end, stimulus_start, stimulus_end, time, tau):
-        """
-        Returns MI for single timesteps
-
-        Parameters
-        ----------
-        trial : int
-            trial number to calculate on from spikes
-        neuron_start : int
-            start of range of neurons included in calculation (included in range)
-        neuron_end : int
-            end of range of neurons included in calculation (excluded in range)
-        stimulus_start : int
-            start of range of neurons in spikes denoting binary stimulus (included in range)
-        stimulus_end : int
-            end of range of neurons in spikes denoting binary stimulus (excluded in range)
-        time : int
-            timestep for which neuron spikes considered
-        tau : int
-            shift in time from which stimulus considered
-
-        Returns
-        -------
-        MI : float
-            mutual information between neuron for time t and stimulus at time t+tau
-        """
-        HX_t = self._entropyCDM(self.spikes._spikes[trial][neuron_start:neuron_end, time:time+1])
-        HR_t_tau = self._entropyCDM(self.spikes._spikes[trial][stimulus_start:stimulus_end, time+tau:time+tau+1])
-        H_R_t_tau_X_t = self._entropyCDM(np.atleast_2d(np.append(self.spikes._spikes[trial][neuron_start:neuron_end, time:time+1], 
-        self.spikes._spikes[trial][stimulus_start:stimulus_end, time+tau:time+tau+1])).T)
-        return HX_t+HR_t_tau-H_R_t_tau_X_t 
-
-    def mutualInformationWindowed(self, trial, neuron_time_start, neuron_start, stimulus_start, stimulus_time_start, neuron_time_end=None, 
-    neuron_end=None, stimulus_end=None, stimulus_time_end=None):
+    def mutualInformationWindowed(self, trial, time_start, neuron_start, stimulus_start, tau, time_end=None, 
+    neuron_end=None, stimulus_end=None):
         """
         WIP
-
         Returns mutualInformation between neuron responses and stimulus appended to spikes for timebins in a range using CDM Entropy
-
         Parameters
         ----------
         trial : int
             trial number to calculate on from spikes
-        neuron_time_start : int
+        time_start : int
             start of range of timebins included in calculation (included in range)
-        neuron_time_end : int
+        time_end : int
             end of range of timebins included in calculation (excluded in range)
         neuron_start : int
             start of range of neurons included in calculation (included in range)
@@ -127,19 +80,18 @@ class CDMentropy:
             start of range of neurons in spikes denoting binary stimulus (included in range)
         stimulus_end : int
             end of range of neurons in spikes denoting binary stimulus (excluded in range)
-        stimulus_time_start : int
-        stimulus_time_end : int
-
+        tau : int
+            shift in time from which stimulus considered
         Returns
         -------
-        MI : float
-            mutual information between neurons and stimuli at windowed time ranges
         """
         if stimulus_end is None:
             stimulus_end = np.shape(self.spikes._spikes[trial])[0]
-        HR = self._entropyCDM(self.spikes._spikes[trial][neuron_start:neuron_end,neuron_time_start:neuron_time_end])
-        HX = self._entropyCDM(self.spikes._spikes[trial][stimulus_start:stimulus_end,stimulus_time_start:stimulus_time_end])
-        temp_concat_spikes = np.atleast_2d(np.append(self.spikes._spikes[trial][neuron_start:neuron_end, neuron_time_start:neuron_time_end], 
-        self.spikes._spikes[trial][stimulus_start:stimulus_end, stimulus_time_start:stimulus_time_end])).T
+
+        HR = self._entropyCDM(self.spikes._spikes[trial][neuron_start:neuron_end,time_start:time_end].T)
+        HX = self._entropyCDM(self.spikes._spikes[trial][stimulus_start:stimulus_end,time_start+tau:time_end+tau].T)
+        temp_concat_spikes = np.zeros((time_end-time_start,neuron_end-neuron_start+stimulus_end-stimulus_start))
+        for t in range(time_start, time_end):
+            temp_concat_spikes[t,:] = np.append(self.spikes._spikes[trial][neuron_start:neuron_end,t],self.spikes._spikes[trial][stimulus_start:stimulus_end,t+tau]).T
         HRX = self._entropyCDM(temp_concat_spikes)
         return HR+HX-HRX
