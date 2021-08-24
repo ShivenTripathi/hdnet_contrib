@@ -20,6 +20,7 @@ class CDMentropy:
         """
         if source is None:
             source = os.path.join(os.path.dirname(__file__),"PyCDMentropy/CDMentropy")
+            print(source)
         octave.addpath(octave.genpath(source))
         octave.addpath(octave.genpath(source+'/lib/PYMentropy'))
         self.opts=octave.struct('isDBer',isDBer,'verbose',verbose,'nMC',nMC)
