@@ -1,6 +1,5 @@
 from oct2py import octave
 import numpy as np
-import os
 
 class CDMentropy:
     """
@@ -19,7 +18,7 @@ class CDMentropy:
         nMC : int
         """
         if source is None:
-            source = os.path.join(os.path.dirname(__file__),"PyCDMentropy/CDMentropy")
+            source = DEFAULT
             print(source)
         octave.addpath(octave.genpath(source))
         octave.addpath(octave.genpath(source+'/lib/PYMentropy'))
