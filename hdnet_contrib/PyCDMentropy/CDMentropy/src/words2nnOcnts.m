@@ -27,7 +27,7 @@ else
     nAlphabet = max(words(:)) + 1;
 end
 
-warning('words2nnOcnts:slow', 'Using words2multiplicities (slower). Consider compiling discreteTimeSeries2Words for faster processing.\n')
+%warning('words2nnOcnts:slow', 'Using words2multiplicities (slower). Consider compiling discreteTimeSeries2Words for faster processing.\n')
 [~,~,nn,bin] = words2multiplicities(words, nAlphabet);     
 
 

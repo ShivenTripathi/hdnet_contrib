@@ -19,7 +19,6 @@ class CDMentropy:
         """
         if source is None:
             source = DEFAULT
-            print(source)
         octave.addpath(octave.genpath(source))
         octave.addpath(octave.genpath(source+'/lib/PYMentropy'))
         self.opts=octave.struct('isDBer',isDBer,'verbose',verbose,'nMC',nMC)

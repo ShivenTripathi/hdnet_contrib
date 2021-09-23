@@ -23,7 +23,7 @@ if nargin < 2; Nbase = 2; end
 
 wordlen = size(words, 2);
 
-if wordlen * log2(Nbase) > 53
+if wordlen * log2(Nbase) > 70
     error('Word too long. Try using fastWords2Counts.');
 end
 
